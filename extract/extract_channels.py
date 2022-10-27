@@ -45,9 +45,9 @@ def extractChannels():
                 channelsDictionary["channel_class_id"].append(classID)
                 
         if channelsDictionary["channel_id"]:
-            ses_db.connect().execute('TRUNCATE TABLE channels')
+            ses_db.connect().execute('TRUNCATE TABLE channels_ext')
             dfChannels = pd.DataFrame(channelsDictionary)
-            dfChannels.to_sql('channels',ses_db,if_exists='append',index=False)
+            dfChannels.to_sql('channels_ext',ses_db,if_exists='append',index=False)
                 
     except:
         traceback.print_exc()

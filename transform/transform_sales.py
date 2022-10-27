@@ -1,11 +1,12 @@
 from util.db_connection import Db_Connection
 from util.properties import getProperty
+from transform.transformations import obt_date
 
 import traceback
 import pandas as pd
 
 
-def extractSales():
+def transfromSales(ID):
     try:
                 
         type= getProperty("TYPE")
@@ -18,22 +19,22 @@ def extractSales():
         con_db = Db_Connection(type,host,port,user,pwd,db)
         ses_db = con_db.start()
         
-        pathSales_csv = getProperty("SALES")
         
         #Dictionary for values of chanels
         salesDictionary = {
-            "prod_id":[],
-            "cust_id":[],
-            "time_id":[],
-            "channel_id":[],
-            "promo_id":[],
-            "quantity_sold":[],
-            "amount_sold":[],
+            "PROD_ID":[],
+            "CUST_ID":[],
+            "TIME_ID":[],
+            "CHANNEL_ID":[],
+            "PROMO_ID":[],
+            "QUANTITY_SOLD":[],
+            "AMOUNT_SOLD":[],
+            "ID_PROCESS":[]
             
         }
         
         #Reading the csv file
-        salesCsv = pd.read_csv(pathSales_csv)
+        salesCsv = pd.read_sql('SELECT PROD_ID,CUST_ID,TIME_ID,CHANNEL_ID,PROMO_ID,QUANTITY_SOLD,AMOUNT_SOLD FROM sales_ext', ses_db)
         
         if not salesCsv.empty:
             for prodID,custID,timeID,channelID,promoID,quantySolD,amountSold in zip(
@@ -47,19 +48,20 @@ def extractSales():
                 
                 ):
                 
-                salesDictionary["prod_id"].append(prodID)
-                salesDictionary["cust_id"].append(custID)
-                salesDictionary["time_id"].append(timeID)
-                salesDictionary["channel_id"].append(channelID)
-                salesDictionary["promo_id"].append(promoID)
-                salesDictionary["quantity_sold"].append(quantySolD)
-                salesDictionary["amount_sold"].append(amountSold)
+                salesDictionary["PROD_ID"].append(prodID)
+                salesDictionary["CUST_ID"].append(custID)
+                salesDictionary["TIME_ID"].append(obt_date(timeID))
+                salesDictionary["CHANNEL_ID"].append(channelID)
+                salesDictionary["PROMO_ID"].append(promoID)
+                salesDictionary["QUANTITY_SOLD"].append(quantySolD)
+                salesDictionary["AMOUNT_SOLD"].append(amountSold)
+                salesDictionary["ID_PROCESS"].append(ID)
                 
                 
-        if salesDictionary["prod_id"]:
-            ses_db.connect().execute('TRUNCATE TABLE sales_ext')
+                
+        if salesDictionary["PROD_ID"]:
             dfSales = pd.DataFrame(salesDictionary)
-            dfSales.to_sql('sales_ext',ses_db,if_exists='append',index=False)
+            dfSales.to_sql('sales_tra',ses_db,if_exists='append',index=False)
                 
     except:
         traceback.print_exc()

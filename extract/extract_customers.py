@@ -78,9 +78,9 @@ def extractCustomers():
                 customersDictionary["cust_email"].append(email)
                 
         if customersDictionary["cust_id"]:
-            ses_db.connect().execute('TRUNCATE TABLE customers')
+            ses_db.connect().execute('TRUNCATE TABLE customers_ext')
             dfCustomers = pd.DataFrame(customersDictionary)
-            dfCustomers.to_sql('customers',ses_db,if_exists='append',index=False)
+            dfCustomers.to_sql('customers_ext',ses_db,if_exists='append',index=False)
                 
     except:
         traceback.print_exc()

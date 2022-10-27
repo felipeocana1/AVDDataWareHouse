@@ -66,9 +66,9 @@ def extractProducts():
                 productsDictionary["prod_min_price"].append(prodMinPrice)
                 
         if productsDictionary["prod_id"]:
-            ses_db.connect().execute('TRUNCATE TABLE products')
+            ses_db.connect().execute('TRUNCATE TABLE products_ext')
             dfProdutcs = pd.DataFrame(productsDictionary)
-            dfProdutcs.to_sql('products',ses_db,if_exists='append',index=False)
+            dfProdutcs.to_sql('products_ext',ses_db,if_exists='append',index=False)
                 
     except:
         traceback.print_exc()

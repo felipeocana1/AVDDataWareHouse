@@ -5,7 +5,7 @@ import traceback
 import pandas as pd
 
 
-def extractCountries():
+def transfromCountries(ID):
     try:
         
         type= getProperty("TYPE")
@@ -18,18 +18,18 @@ def extractCountries():
         con_db = Db_Connection(type,host,port,user,pwd,db)
         ses_db = con_db.start()
         
-        pathCoutries_csv = getProperty("COUNTRIES")
         
         #Dictionary for values of chanels
         countryDictionary = {
-            "country_id":[],
-            "country_name":[],
-            "country_region":[],
-            "country_region_id":[]
+            "COUNTRY_ID":[],
+            "COUNTRY_NAME":[],
+            "COUNTRY_REGION":[],
+            "COUNTRY_REGION_ID":[],
+            "ID_PROCESS":[]
         }
         
         #Reading the csv file
-        countryCsv = pd.read_csv(pathCoutries_csv)
+        countryCsv = pd.read_sql('SELECT COUNTRY_ID,COUNTRY_NAME,COUNTRY_REGION,COUNTRY_REGION_ID FROM countries_ext', ses_db)
         
         if not countryCsv.empty:
             for contryID,conName,region,regionID in zip(
@@ -39,15 +39,16 @@ def extractCountries():
                 countryCsv["COUNTRY_REGION_ID"]
                 ):
                 
-                countryDictionary["country_id"].append(contryID)
-                countryDictionary["country_name"].append(conName)
-                countryDictionary["country_region"].append(region)
-                countryDictionary["country_region_id"].append(regionID)
+                countryDictionary["COUNTRY_ID"].append(contryID)
+                countryDictionary["COUNTRY_NAME"].append(conName)
+                countryDictionary["COUNTRY_REGION"].append(region)
+                countryDictionary["COUNTRY_REGION_ID"].append(regionID)
+                countryDictionary["ID_PROCESS"].append(ID)
                 
-        if countryDictionary["country_id"]:
-            ses_db.connect().execute('TRUNCATE TABLE countries_ext')
+                
+        if countryDictionary["COUNTRY_ID"]:
             dfContries = pd.DataFrame(countryDictionary)
-            dfContries.to_sql('countries_ext',ses_db,if_exists='append',index=False)
+            dfContries.to_sql('countries_tra',ses_db,if_exists='append',index=False)
                 
     except:
         traceback.print_exc()

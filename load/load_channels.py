@@ -5,7 +5,7 @@ import traceback
 import pandas as pd
 
 
-def transformChannels(ID):
+def loadChannels(ID):
     try:
 
         type= getProperty("TYPE")
@@ -13,10 +13,15 @@ def transformChannels(ID):
         port= getProperty("PORT")
         user= getProperty("USER")
         pwd=  getProperty("PASSWORD")
-        db=   getProperty("DBSTG")
+        dbSTG=   getProperty("DBSTG")
+        dbSOR=   getProperty("DBSOR")
         
-        con_db = Db_Connection(type,host,port,user,pwd,db)
-        ses_db = con_db.start()
+        
+        con_dbSTG = Db_Connection(type,host,port,user,pwd,dbSTG)
+        ses_dbStg = con_dbSTG.start()
+        
+        con_dbSOR = Db_Connection(type,host,port,user,pwd,dbSOR)
+        ses_dbSor = con_dbSOR.start()
 
         
         #Dictionary for values of chanels
@@ -28,8 +33,8 @@ def transformChannels(ID):
             "ID_PROCESS":[]
         }
         
-        #Reading the csv file
-        channelCsv = pd.read_sql('SELECT CHANNEL_ID,CHANNEL_DESC,CHANNEL_CLASS,CHANNEL_CLASS_ID FROM channels_ext', ses_db)
+       
+        channelCsv = pd.read_sql(f'SELECT CHANNEL_ID,CHANNEL_DESC,CHANNEL_CLASS,CHANNEL_CLASS_ID FROM channels_tra WHERE ID_PROCESS = {ID}', ses_dbStg)
         
         if not channelCsv.empty:
             for chaID,desc,classParam,classID in zip(
@@ -47,8 +52,14 @@ def transformChannels(ID):
                 
                 
         if channelsDictionary["CHANNEL_ID"]:
-            dfChannels = pd.DataFrame(channelsDictionary)
-            dfChannels.to_sql('channels_tra',ses_db,if_exists='append',index=False)
+            dfChannels_tra = pd.DataFrame(channelsDictionary)
+            dfChannels_sor = pd.read_sql_query('SELECT CHANNEL_ID,CHANNEL_DESC,CHANNEL_CLASS,CHANNEL_CLASS_ID,ID_PROCESS FROM channels', ses_dbSor)
+            if(dfChannels_sor.empty):
+                dfChannels_tra.to_sql('channels',ses_dbSor,if_exists='append',index=False)
+            else:
+                df_merge=dfChannels_tra.merge(dfChannels_sor, indicator='i', how='outer').query('i == "left_only"').drop('i', axis=1)
+                df_merge.to_sql('channels',ses_dbSor, if_exists="append",index=False)
+            
                 
     except:
         traceback.print_exc()

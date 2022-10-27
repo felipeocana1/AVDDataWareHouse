@@ -64,9 +64,9 @@ def extractTimes():
                 
                 
         if timesDictionary["time_id"]:
-            ses_db.connect().execute('TRUNCATE TABLE times')
+            ses_db.connect().execute('TRUNCATE TABLE times_ext')
             dfTimes = pd.DataFrame(timesDictionary)
-            dfTimes.to_sql('times',ses_db,if_exists='append',index=False)
+            dfTimes.to_sql('times_ext',ses_db,if_exists='append',index=False)
                 
     except:
         traceback.print_exc()
